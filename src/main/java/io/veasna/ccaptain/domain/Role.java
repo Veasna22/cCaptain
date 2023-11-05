@@ -6,10 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
-import java.time.LocalDateTime;
-
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
 /**

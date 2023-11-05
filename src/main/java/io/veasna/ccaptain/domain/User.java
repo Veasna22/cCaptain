@@ -6,12 +6,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
-
+/**
+ * @author Veasna
+ * @version 1.0
+ * @license Veasna , LLC
+ * @since 3/11/23 18:51
+ */
 @Data
 @SuperBuilder
 @NoArgsConstructor
