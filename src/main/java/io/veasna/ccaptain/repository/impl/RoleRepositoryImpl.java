@@ -14,8 +14,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static io.veasna.ccaptain.enumeration.RoleType.ROLE_USER;
-import static io.veasna.ccaptain.query.RoleQuery.INSERT_ROLE_TO_USER;
-import static io.veasna.ccaptain.query.RoleQuery.SELECT_ROLE_BY_NAME_QUERY;
+import static io.veasna.ccaptain.query.RoleQuery.*;
 import static java.util.Map.*;
 import static java.util.Objects.requireNonNull;
 
@@ -73,7 +72,16 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
 
     @Override
     public Role getRoleByUserId(Long userId) {
-        return null;
+
+        log.info("Adding role to user id : {}", userId);
+        try{
+            return jdbc.queryForObject(SELECT_ROLE_BY_ID_QUERY, of("id", userId), new RoleRowMapper());
+        } catch(EmptyResultDataAccessException exception){
+            throw new ApiException("No Role founded By name : " + ROLE_USER.name());
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw new ApiException("An error Occurred . Please Try Again .");
+        }
     }
 
     @Override

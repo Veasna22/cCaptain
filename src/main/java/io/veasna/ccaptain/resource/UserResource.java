@@ -3,6 +3,7 @@ package io.veasna.ccaptain.resource;
 import io.veasna.ccaptain.domain.HttpResponse;
 import io.veasna.ccaptain.domain.User;
 import io.veasna.ccaptain.dto.UserDTO;
+import io.veasna.ccaptain.form.LoginForm;
 import io.veasna.ccaptain.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +15,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.net.URI;
 
 import static java.time.Instant.now;
 import static java.util.Map.of;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 /**
  * @author Veasna
@@ -35,9 +37,17 @@ public class UserResource {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping("/login")
-    public ResponseEntity<HttpResponse> login(String email, String password){
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,password));
-        return null;
+    public ResponseEntity<HttpResponse> login(@RequestBody @Valid LoginForm loginForm){
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginForm.getEmail(),loginForm.getPassword()));
+        UserDTO userDTO = userService.getUserByEmail(loginForm.getEmail());
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .data(of("user",userDTO))
+                        .message("Login successfully")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
     }
 
     @PostMapping("/register")
