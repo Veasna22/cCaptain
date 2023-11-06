@@ -2,8 +2,11 @@ package io.veasna.ccaptain.resource;
 
 import io.veasna.ccaptain.domain.HttpResponse;
 import io.veasna.ccaptain.domain.User;
+import io.veasna.ccaptain.domain.UserPrincipal;
 import io.veasna.ccaptain.dto.UserDTO;
 import io.veasna.ccaptain.form.LoginForm;
+import io.veasna.ccaptain.provider.TokenProvider;
+import io.veasna.ccaptain.service.RoleService;
 import io.veasna.ccaptain.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +37,9 @@ import static org.springframework.http.HttpStatus.OK;
 @RequiredArgsConstructor
 public class UserResource {
     private final UserService userService;
+    private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
+    private final TokenProvider tokenProvider;
 
     @PostMapping("/login")
     public ResponseEntity<HttpResponse> login(@RequestBody @Valid LoginForm loginForm){
@@ -80,10 +85,14 @@ public class UserResource {
         return ResponseEntity.ok().body(
                 HttpResponse.builder()
                         .timeStamp(now().toString())
-                        .data(of("user",user))
+                        .data(of("user",user,"access_token", tokenProvider.createAccessToken(getUserPrincipal(user)),"refresh_token", tokenProvider.createRefreshToken(getUserPrincipal(user))))
                         .message("Login successfully")
                         .status(OK)
                         .statusCode(OK.value())
                         .build());
+    }
+
+    private UserPrincipal getUserPrincipal(UserDTO user) {
+        return new UserPrincipal(userService.getUser(user.getEmail()),roleService.getRoleByUserId(user.getId()).getPermission());
     }
 }

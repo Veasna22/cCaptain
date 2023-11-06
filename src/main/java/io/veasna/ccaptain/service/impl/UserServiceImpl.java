@@ -35,4 +35,9 @@ public class UserServiceImpl implements UserService {
         userRepository.sendVerificationCode(user);
     }
 
+    @Override
+    public User getUser(String email) {
+        return userRepository.getUserByEmail(email);
+    }
+
 }
