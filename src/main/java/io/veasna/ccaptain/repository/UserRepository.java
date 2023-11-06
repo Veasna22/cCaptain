@@ -14,4 +14,6 @@ public interface UserRepository <T extends User>{
     Boolean delete(Long id);
 
     User getUserByEmail(String email);
+
+    void sendVerificationCode(UserDTO user);
 }

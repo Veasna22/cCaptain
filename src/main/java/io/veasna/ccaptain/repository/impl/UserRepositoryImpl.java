@@ -3,6 +3,7 @@ package io.veasna.ccaptain.repository.impl;
 import io.veasna.ccaptain.domain.Role;
 import io.veasna.ccaptain.domain.User;
 import io.veasna.ccaptain.domain.UserPrincipal;
+import io.veasna.ccaptain.dto.UserDTO;
 import io.veasna.ccaptain.exception.ApiException;
 import io.veasna.ccaptain.repository.RoleRepository;
 import io.veasna.ccaptain.repository.UserRepository;
@@ -23,14 +24,18 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.Date;
 import java.util.UUID;
 
 import static io.veasna.ccaptain.enumeration.RoleType.ROLE_USER;
 import static io.veasna.ccaptain.enumeration.VerificationType.ACCOUNT;
 import static io.veasna.ccaptain.query.UserQuery.*;
-import static java.util.Map.*;
+import static io.veasna.ccaptain.utils.SmsUtils.sendSMS;
+import static java.util.Map.of;
 import static java.util.Objects.requireNonNull;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.apache.commons.lang3.time.DateFormatUtils.format;
+import static org.apache.commons.lang3.time.DateUtils.addDays;
 
 /**
  * @author Veasna
@@ -43,6 +48,7 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class UserRepositoryImpl implements UserRepository<User> , UserDetailsService {
 
+    private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private final NamedParameterJdbcTemplate jdbc;
     private final RoleRepository<Role> roleRepository;
     private final BCryptPasswordEncoder encoder;
@@ -139,6 +145,22 @@ public class UserRepositoryImpl implements UserRepository<User> , UserDetailsSer
             // if any errors , throw exception with Proper Message
         } catch (EmptyResultDataAccessException exception) {
             throw new ApiException("No USER FOUNDED By Email : " + email);
+        } catch (Exception exception) {
+            log.error(exception.getMessage());
+            throw new ApiException("An error Occurred . Please Try Again .");
+        }
+    }
+
+    @Override
+    public void sendVerificationCode(UserDTO user) {
+        String expirationDate = format(addDays(new Date(), 1),DATE_FORMAT);
+        String verificationCode = randomAlphabetic(8).toUpperCase();
+        try{
+            jdbc.update(DELETE_VERIFICATION_CODE_BY_USER_ID, of("id", user.getId()));
+            jdbc.update(INSERT_VERIFICATION_CODE_QUERY, of("userId", user.getId(), "code", verificationCode, "expirationDate", expirationDate));
+            sendSMS(user.getPhone(),"From : cCaptain \nVerification Code\n" + verificationCode);
+            // if any errors , throw exception with Proper Message
+            log.info("Verification Code : {} ",verificationCode);
         } catch (Exception exception) {
             log.error(exception.getMessage());
             throw new ApiException("An error Occurred . Please Try Again .");
