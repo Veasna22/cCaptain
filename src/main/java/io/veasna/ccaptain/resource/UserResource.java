@@ -8,23 +8,21 @@ import io.veasna.ccaptain.form.LoginForm;
 import io.veasna.ccaptain.provider.TokenProvider;
 import io.veasna.ccaptain.service.RoleService;
 import io.veasna.ccaptain.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.net.URI;
 
+import static io.veasna.ccaptain.dtomapper.UserDTOMapper.toUser;
 import static java.time.Instant.now;
 import static java.util.Map.of;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
 /**
  * @author Veasna
@@ -50,8 +48,6 @@ public class UserResource {
 
     }
 
-
-
     @PostMapping("/register")
     public ResponseEntity<HttpResponse> saveUser(@RequestBody @Valid User user){
         UserDTO userDto = userService.createUser(user);
@@ -64,9 +60,23 @@ public class UserResource {
                         .statusCode(CREATED.value())
                         .build());
     }
+    @PostMapping("/verify/code/{email}/{code}")
+    public ResponseEntity<HttpResponse> verifyCode (@PathVariable("email") String email, @PathVariable ("code") String code){
+        UserDTO user = userService.verifyCode(email,code);
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .data(of("user",user,"access_token",
+                                tokenProvider.createAccessToken(getUserPrincipal(user)),"refresh_token",
+                                tokenProvider.createRefreshToken(getUserPrincipal(user))))
+                        .message("Login successfully")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
 
     private URI getUri() {
-        return URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/get/<userId>").toUriString());
+        return URI.create(fromCurrentContextPath().path("/user/get/<userId>").toUriString());
     }
 
     private ResponseEntity<HttpResponse> sendVerificationCode(UserDTO user) {
@@ -85,7 +95,9 @@ public class UserResource {
         return ResponseEntity.ok().body(
                 HttpResponse.builder()
                         .timeStamp(now().toString())
-                        .data(of("user",user,"access_token", tokenProvider.createAccessToken(getUserPrincipal(user)),"refresh_token", tokenProvider.createRefreshToken(getUserPrincipal(user))))
+                        .data(of("user",user,"access_token",
+                                tokenProvider.createAccessToken(getUserPrincipal(user)),"refresh_token",
+                                tokenProvider.createRefreshToken(getUserPrincipal(user))))
                         .message("Login successfully")
                         .status(OK)
                         .statusCode(OK.value())
@@ -93,6 +105,6 @@ public class UserResource {
     }
 
     private UserPrincipal getUserPrincipal(UserDTO user) {
-        return new UserPrincipal(userService.getUser(user.getEmail()),roleService.getRoleByUserId(user.getId()).getPermission());
+        return new UserPrincipal(toUser(userService.getUserByEmail(user.getEmail())),roleService.getRoleByUserId(user.getId()).getPermission());
     }
 }

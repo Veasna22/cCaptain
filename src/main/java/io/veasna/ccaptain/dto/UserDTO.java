@@ -1,6 +1,9 @@
 package io.veasna.ccaptain.dto;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -11,7 +14,10 @@ import java.time.LocalDateTime;
  * @since 3/11/23 18:39
  */
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserDTO {
     private Long id;
     private String fistName;
@@ -26,4 +32,7 @@ public class UserDTO {
     private Boolean isNotLocked;
     private Boolean isUsingMfa;
     private LocalDateTime createdAt;
+    private String roleName;
+    private String permissions;
+
 }
