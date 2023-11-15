@@ -4,24 +4,29 @@ import io.veasna.ccaptain.domain.HttpResponse;
 import io.veasna.ccaptain.domain.User;
 import io.veasna.ccaptain.domain.UserPrincipal;
 import io.veasna.ccaptain.dto.UserDTO;
+import io.veasna.ccaptain.exception.ApiException;
 import io.veasna.ccaptain.form.LoginForm;
 import io.veasna.ccaptain.provider.TokenProvider;
 import io.veasna.ccaptain.service.RoleService;
 import io.veasna.ccaptain.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
 import static io.veasna.ccaptain.dtomapper.UserDTOMapper.toUser;
+import static io.veasna.ccaptain.utils.ExceptionUtils.processError;
 import static java.time.Instant.now;
 import static java.util.Map.of;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.security.authentication.UsernamePasswordAuthenticationToken.unauthenticated;
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
 /**
@@ -38,14 +43,20 @@ public class UserResource {
     private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
+    private final HttpServletRequest request;
+    private final HttpServletResponse response;
 
     @PostMapping("/login")
     public ResponseEntity<HttpResponse> login(@RequestBody @Valid LoginForm loginForm){
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginForm.getEmail(),loginForm.getPassword()));
-
-        UserDTO user = userService.getUserByEmail(loginForm.getEmail());
+        Authentication authentication = authenticate(loginForm.getEmail(),loginForm.getPassword());
+        UserDTO user = getAuthenticatedUser(authentication);
+        System.out.println(authentication);
+        System.out.println(((UserPrincipal) authentication.getPrincipal()).getUser());
         return user.getIsUsingMfa() ? sendVerificationCode(user) : sendResponse(user);
 
+    }
+    private UserDTO getAuthenticatedUser(Authentication authentication){
+        return ((UserPrincipal) authentication.getPrincipal()).getUser();
     }
 
     @PostMapping("/register")
@@ -60,6 +71,20 @@ public class UserResource {
                         .statusCode(CREATED.value())
                         .build());
     }
+    @GetMapping("/profile")
+    public ResponseEntity<HttpResponse> profile (Authentication authentication){
+        UserDTO user = userService.getUserByEmail(authentication.getName());
+        System.out.println(authentication);
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .data(of("user",user))
+                        .message("Profile Retrieved ")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
+
     @PostMapping("/verify/code/{email}/{code}")
     public ResponseEntity<HttpResponse> verifyCode (@PathVariable("email") String email, @PathVariable ("code") String code){
         UserDTO user = userService.verifyCode(email,code);
@@ -74,11 +99,30 @@ public class UserResource {
                         .statusCode(OK.value())
                         .build());
     }
-
+    @RequestMapping ("/error")
+    public ResponseEntity<HttpResponse> handleError (HttpServletRequest request){
+        return ResponseEntity.badRequest().body(
+                HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .reason("There is no mapping for a " + request.getMethod() + " request for this path on server")
+                        .status(BAD_REQUEST)
+                        .statusCode(BAD_REQUEST.value())
+                        .build());
+    }
     private URI getUri() {
         return URI.create(fromCurrentContextPath().path("/user/get/<userId>").toUriString());
     }
+    private Authentication authenticate (String email, String password){
+        try{
+            Authentication authentication = authenticationManager.authenticate(unauthenticated(email,password));
+            return authentication;
 
+        }catch(Exception exception){
+            processError(request,response,exception);
+            throw new ApiException(exception.getMessage());
+        }
+
+    }
     private ResponseEntity<HttpResponse> sendVerificationCode(UserDTO user) {
         userService.sendVerificationCode(user);
         return ResponseEntity.ok().body(
@@ -105,6 +149,6 @@ public class UserResource {
     }
 
     private UserPrincipal getUserPrincipal(UserDTO user) {
-        return new UserPrincipal(toUser(userService.getUserByEmail(user.getEmail())),roleService.getRoleByUserId(user.getId()).getPermission());
+        return new UserPrincipal(toUser(userService.getUserByEmail(user.getEmail())),roleService.getRoleByUserId(user.getId()));
     }
 }

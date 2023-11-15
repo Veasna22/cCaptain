@@ -117,7 +117,7 @@ public class UserRepositoryImpl implements UserRepository<User> , UserDetailsSer
             throw new UsernameNotFoundException("User not found in the database");
         }else{
             log.info("User found in the database {}", email);
-            return new UserPrincipal(user, roleRepository.getRoleByUserId(user.getId()).getPermission());
+            return new UserPrincipal(user, roleRepository.getRoleByUserId(user.getId()));
         }
     }
     @Override
@@ -126,7 +126,7 @@ public class UserRepositoryImpl implements UserRepository<User> , UserDetailsSer
             return jdbc.queryForObject(SELECT_USER_BY_EMAIL_QUERY, of("email", email), new UserRowMapper());
             // if any errors , throw exception with Proper Message
         } catch (EmptyResultDataAccessException exception) {
-            throw new ApiException("No USER FOUNDED By Email : " + email);
+            throw new ApiException("No User Found By Email : " + email);
         } catch (Exception exception) {
             log.error(exception.getMessage());
             throw new ApiException("An error Occurred . Please Try Again .");

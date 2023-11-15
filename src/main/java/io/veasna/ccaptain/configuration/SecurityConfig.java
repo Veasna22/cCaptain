@@ -1,5 +1,6 @@
 package io.veasna.ccaptain.configuration;
 
+import io.veasna.ccaptain.filter.CustomAuthorizationFilter;
 import io.veasna.ccaptain.handler.CustomAccessDeniedHandler;
 import io.veasna.ccaptain.handler.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -35,7 +37,9 @@ public class SecurityConfig
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final UserDetailsService userDetailsService;
     private static final String[] PUBLIC_URL = {"/user/login/**","/user/register/**","/user/verify/code/**"};
+//    private static final String[] PUBLIC_URL = {"/**"};
 
+    private final CustomAuthorizationFilter customAuthorizationFilter;
     @Bean
     public SecurityFilterChain securityFilterChain (HttpSecurity http) throws Exception {
         http.csrf().disable().cors().disable();
@@ -45,7 +49,7 @@ public class SecurityConfig
         http.authorizeHttpRequests().requestMatchers(HttpMethod.DELETE, "/customer/delete/**").hasAuthority("DELETE:CUSTOMER");
         http.exceptionHandling().accessDeniedHandler(customAccessDeniedHandler).authenticationEntryPoint(customAuthenticationEntryPoint);
         http.authorizeHttpRequests().anyRequest().authenticated();
-
+        http.addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

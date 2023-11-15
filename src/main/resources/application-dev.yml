@@ -20,3 +20,9 @@ spring:
       continue-on-error: false
 jwt:
   secret: mysupercomplexsecretbitch
+
+server:
+  error:
+    path: /user/error
+    whitelabel:
+      enabled: false
