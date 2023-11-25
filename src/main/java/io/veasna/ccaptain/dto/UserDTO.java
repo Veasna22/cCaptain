@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class UserDTO {
     private Long id;
-    private String fistName;
+    private String firstName;
     private String lastName;
     private String email;
     private String address;
