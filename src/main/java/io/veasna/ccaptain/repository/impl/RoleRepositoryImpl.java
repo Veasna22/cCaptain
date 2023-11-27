@@ -73,7 +73,7 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
     @Override
     public Role getRoleByUserId(Long userId) {
 
-        log.info("Adding role to user id : {}", userId);
+        log.info("Fetching role to user id : {}", userId);
         try{
             return jdbc.queryForObject(SELECT_ROLE_BY_ID_QUERY, of("id", userId), new RoleRowMapper());
         } catch(EmptyResultDataAccessException exception){
