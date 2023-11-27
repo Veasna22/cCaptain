@@ -2,6 +2,7 @@ package io.veasna.ccaptain.service;
 
 import io.veasna.ccaptain.domain.User;
 import io.veasna.ccaptain.dto.UserDTO;
+import io.veasna.ccaptain.form.UpdateForm;
 
 /**
  * @author Veasna
@@ -15,4 +16,16 @@ public interface UserService
     UserDTO getUserByEmail(String email);
     void sendVerificationCode(UserDTO user);
     UserDTO verifyCode(String email, String code);
+
+    void resetPassword(String email);
+
+    UserDTO verifyPasswordKey(String key);
+
+    UserDTO updateUserDetails(UpdateForm user);
+
+    UserDTO getUserById(Long userId);
+
+    void renewPassword(String key, String password, String comfirmpassword);
+
+    UserDTO verifyAccountKey(String key);
 }

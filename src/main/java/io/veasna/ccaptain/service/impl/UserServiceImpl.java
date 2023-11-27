@@ -3,6 +3,7 @@ package io.veasna.ccaptain.service.impl;
 import io.veasna.ccaptain.domain.Role;
 import io.veasna.ccaptain.domain.User;
 import io.veasna.ccaptain.dto.UserDTO;
+import io.veasna.ccaptain.form.UpdateForm;
 import io.veasna.ccaptain.repository.RoleRepository;
 import io.veasna.ccaptain.repository.UserRepository;
 import io.veasna.ccaptain.service.UserService;
@@ -47,6 +48,36 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO verifyCode(String email, String code) {
         return maptoUserDTO(userRepository.verifyCode(email,code));
+    }
+
+    @Override
+    public void resetPassword(String email) {
+        userRepository.resetPassword(email);
+    }
+
+    @Override
+    public UserDTO verifyPasswordKey(String key) {
+        return maptoUserDTO(userRepository.verifyPasswordKey(key));
+    }
+
+    @Override
+    public UserDTO updateUserDetails(UpdateForm user) {
+        return maptoUserDTO(userRepository.updateUserDetails(user));
+    }
+
+    @Override
+    public UserDTO getUserById(Long userId) {
+        return maptoUserDTO(userRepository.get(userId));
+    }
+
+    @Override
+    public void renewPassword(String key, String password, String comfirmpassword) {
+        userRepository.renewPassword(key,password,comfirmpassword);
+    }
+
+    @Override
+    public UserDTO verifyAccountKey(String key) {
+        return maptoUserDTO(userRepository.verifyAccountKey(key));
     }
 
     private UserDTO maptoUserDTO(User user) {

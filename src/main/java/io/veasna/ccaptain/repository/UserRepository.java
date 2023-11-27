@@ -2,6 +2,7 @@ package io.veasna.ccaptain.repository;
 
 import io.veasna.ccaptain.domain.User;
 import io.veasna.ccaptain.dto.UserDTO;
+import io.veasna.ccaptain.form.UpdateForm;
 
 import java.util.Collection;
 
@@ -16,4 +17,14 @@ public interface UserRepository <T extends User>{
     void sendVerificationCode(UserDTO user);
 
     User verifyCode(String email, String code);
+
+    void resetPassword(String email);
+
+    T verifyPasswordKey(String key);
+
+    T updateUserDetails(UpdateForm user);
+
+    void renewPassword(String key, String password, String comfirmpassword);
+
+    T verifyAccountKey(String key);
 }

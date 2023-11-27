@@ -4,7 +4,9 @@ import io.veasna.ccaptain.domain.Role;
 import io.veasna.ccaptain.domain.User;
 import io.veasna.ccaptain.domain.UserPrincipal;
 import io.veasna.ccaptain.dto.UserDTO;
+import io.veasna.ccaptain.enumeration.VerificationType;
 import io.veasna.ccaptain.exception.ApiException;
+import io.veasna.ccaptain.form.UpdateForm;
 import io.veasna.ccaptain.repository.RoleRepository;
 import io.veasna.ccaptain.repository.UserRepository;
 import io.veasna.ccaptain.rowmapper.UserRowMapper;
@@ -29,6 +31,7 @@ import java.util.UUID;
 
 import static io.veasna.ccaptain.enumeration.RoleType.ROLE_USER;
 import static io.veasna.ccaptain.enumeration.VerificationType.ACCOUNT;
+import static io.veasna.ccaptain.enumeration.VerificationType.PASSWORD;
 import static io.veasna.ccaptain.query.UserQuery.*;
 import static io.veasna.ccaptain.utils.SmsUtils.sendSMS;
 import static java.util.Map.of;
@@ -95,7 +98,14 @@ public class UserRepositoryImpl implements UserRepository<User> , UserDetailsSer
 
     @Override
     public User get(Long id) {
-        return null;
+        try {
+            return jdbc.queryForObject(SELECT_USER_BY_ID_QUERY, of("id", id), new UserRowMapper());
+        }catch(EmptyResultDataAccessException exception){
+            throw new ApiException("No User Found By ID : " + id);
+        }catch(Exception exception){
+            log.error(exception.getMessage());
+            throw new ApiException("An error Occurred . Please Try Again .");
+        }
     }
 
     @Override
@@ -140,7 +150,7 @@ public class UserRepositoryImpl implements UserRepository<User> , UserDetailsSer
         try{
             jdbc.update(DELETE_VERIFICATION_CODE_BY_USER_ID, of("id", user.getId()));
             jdbc.update(INSERT_VERIFICATION_CODE_QUERY, of("userId", user.getId(), "code", verificationCode, "expirationDate", expirationDate));
-            sendSMS(user.getPhone(),"From : cCaptain \nVerification Code\n" + verificationCode);
+//            sendSMS(user.getPhone(),"From : cCaptain \nVerification Code\n" + verificationCode);
             // if any errors , throw exception with Proper Message
             log.info("Verification Code : {} ",verificationCode);
         } catch (Exception exception) {
@@ -170,6 +180,78 @@ public class UserRepositoryImpl implements UserRepository<User> , UserDetailsSer
         }
     }
 
+    @Override
+    public void resetPassword(String email) {
+        if(getEmailCount(email.trim().toLowerCase()) <= 0 ) throw new ApiException("Email not found");
+        try{
+                String expirationDate = format(addDays(new Date(), 1),DATE_FORMAT);
+                User user = getUserByEmail(email);
+                String verificationUrl = getVerificationUrl(UUID.randomUUID().toString(), PASSWORD.getType());
+                jdbc.update(DELETE_PASSWORD_VERIFICATION_BY_USER_ID_QUERY, of("userID", user.getId()));
+                jdbc.update(INSERT_PASSWORD_VERIFICATION_QUERY, of("userID", user.getId(), "url", verificationUrl, "expirationDate", expirationDate));
+            // TODO send EMAIL with URL To User
+                log.info("Verification URL : {} ",verificationUrl);
+        }catch(Exception exception){
+            throw new ApiException("An error Occurred . Please Try Again .");
+        }
+    }
+
+    @Override
+    public User verifyPasswordKey(String key) {
+        if (isLinkedExpired(key,PASSWORD)) throw new ApiException("This link has expired . Please Try Again .");
+        try{
+            User user = jdbc.queryForObject(SELECT_USER_BY_PASSWORD_URL_QUERY, of("url", getVerificationUrl(key, PASSWORD.getType())), new UserRowMapper());
+//            jdbc.update(DELETE_USER_FROM_PASSWORD_VERIFICATION_QUERY, of("id", user.getId()));
+            return user;
+        }catch(EmptyResultDataAccessException exception){
+            log.error(exception.getMessage());
+            throw new ApiException("This Code is not Valid Please login Again .");
+        }catch(Exception exception){
+            log.error(exception.getMessage());
+            throw new ApiException("An error Occurred . Please Try Again .");
+        }
+    }
+
+    @Override
+    public User updateUserDetails(UpdateForm user) {
+        try{
+            jdbc.update(UPDATE_USER_DETAILS_QUERY, getUserDetailsSqlParameterSource(user));
+            return get(user.getId());
+        }catch(Exception exception){
+            log.error(exception.getMessage());
+            throw new ApiException("An error Occurred . Please Try Again .");
+        }
+    }
+
+    @Override
+    public void renewPassword(String key, String password, String comfirmpassword) {
+        if(!password.equals(comfirmpassword))
+            throw new ApiException("Password and Confirm Password does not match");
+        try{
+            jdbc.update(UPDATE_USER_PASSWORD_BY_URL_QUERY, of("password", encoder.encode(password), "url", getVerificationUrl(key, PASSWORD.getType())));
+            jdbc.update(DELETE_VERIFICATION_BY_URL_QUERY, of("url", getVerificationUrl(key, PASSWORD.getType())));
+        }catch(Exception exception){
+            log.error(exception.getMessage());
+            throw new ApiException("An error Occurred . Please Try Again .");
+        }
+    }
+
+    @Override
+    public User verifyAccountKey(String key) {
+
+        try{
+            User user = jdbc.queryForObject(SELECT_USER_BY_ACCOUNT_URL_QUERY, of("url", getVerificationUrl(key, ACCOUNT.getType())), new UserRowMapper());
+            jdbc.update(UPDATE_USER_ENABLED_QUERY, of("enabled", true, "id", user.getId()));
+            return user;
+        }catch(EmptyResultDataAccessException exception){
+            log.error(exception.getMessage());
+            throw new ApiException("This Link is not Valid Please login Again .");
+        }catch(Exception exception){
+            log.error(exception.getMessage());
+            throw new ApiException("An error Occurred . Please Try Again .");
+        }
+    }
+
 
     private SqlParameterSource getSqlParameterSource(User user) {
         return new MapSqlParameterSource()
@@ -178,6 +260,18 @@ public class UserRepositoryImpl implements UserRepository<User> , UserDetailsSer
                 .addValue("email", user.getEmail())
                 .addValue("password", encoder.encode(user.getPassword()));
     }
+    private SqlParameterSource getUserDetailsSqlParameterSource(UpdateForm user) {
+        return new MapSqlParameterSource()
+                .addValue("id", user.getId())
+                .addValue("firstName", user.getFirstName())
+                .addValue("lastName", user.getLastName())
+                .addValue("email", user.getEmail())
+                .addValue("phone", user.getPhone())
+                .addValue("address", user.getAddress())
+                .addValue("title", user.getTitle())
+                .addValue("bio", user.getBio());
+    }
+
 
     private Integer getEmailCount(String email) {
         return jdbc.queryForObject(COUNT_USER_EMAIL_QUERY, of("email", email), Integer.class);
@@ -187,6 +281,17 @@ public class UserRepositoryImpl implements UserRepository<User> , UserDetailsSer
         return ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/api/v1/verify/" + type + "/" + key)
                 .toUriString();
+    }
+
+    private Boolean isLinkedExpired(String key, VerificationType password) {
+        try{
+            return jdbc.queryForObject(SELECT_EXPIRATION_BY_URL, of("url", getVerificationUrl(key, password.getType())), Boolean.class);
+        }catch(EmptyResultDataAccessException exception){
+            log.error(exception.getMessage());
+            throw new ApiException("This Code is not Valid Please login Again .");
+        }catch(Exception exception){
+            throw new ApiException("An error Occurred . Please Try Again .");
+        }
     }
 
     private Boolean isVerificationCodeExpired(String code) {
