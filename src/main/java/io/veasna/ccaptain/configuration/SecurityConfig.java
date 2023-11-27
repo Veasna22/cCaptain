@@ -36,13 +36,14 @@ public class SecurityConfig
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final UserDetailsService userDetailsService;
-    private static final String[] PUBLIC_URL = {"/user/login/**","/user/register/**","/user/verify/code/**"};
+    private static final String[] PUBLIC_URL = {"/user/verify/account/**","/user/login/**","/user/register/**","/user/verify/code/**","/user/resetpassword/**",
+            "/user/verify/password/**" };
 //    private static final String[] PUBLIC_URL = {"/**"};
 
     private final CustomAuthorizationFilter customAuthorizationFilter;
     @Bean
     public SecurityFilterChain securityFilterChain (HttpSecurity http) throws Exception {
-        http.csrf().disable().cors().disable();
+        http.csrf().disable().cors();
         http.sessionManagement().sessionCreationPolicy(STATELESS);
         http.authorizeHttpRequests().requestMatchers(PUBLIC_URL).permitAll();
         http.authorizeHttpRequests().requestMatchers(HttpMethod.DELETE, "/user/delete/**").hasAuthority("DELETE:USER");
