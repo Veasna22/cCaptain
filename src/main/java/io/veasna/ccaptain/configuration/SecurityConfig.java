@@ -36,7 +36,7 @@ public class SecurityConfig
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final UserDetailsService userDetailsService;
-    private static final String[] PUBLIC_URL = {"/user/verify/account/**","/user/login/**","/user/register/**","/user/verify/code/**","/user/resetpassword/**",
+    private static final String[] PUBLIC_URL = {"/user/refresh/token/**","/user/verify/account/**","/user/login/**","/user/register/**","/user/verify/code/**","/user/resetpassword/**",
             "/user/verify/password/**" };
 //    private static final String[] PUBLIC_URL = {"/**"};
 
