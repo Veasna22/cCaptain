@@ -16,8 +16,7 @@ import org.springframework.security.authentication.LockedException;
 import java.io.OutputStream;
 
 import static java.time.Instant.now;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 /**
@@ -30,11 +29,13 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 public class ExceptionUtils {
     public static void processError(HttpServletRequest request, HttpServletResponse response, Exception exception){
         if(exception instanceof ApiException || exception instanceof DisabledException || exception instanceof LockedException
-                || exception instanceof BadCredentialsException || exception instanceof InvalidClaimException || exception instanceof TokenExpiredException){
+                || exception instanceof BadCredentialsException || exception instanceof InvalidClaimException ) {
             System.out.println(exception.getMessage());
             HttpResponse httpResponse = getHttpResponse(response, exception.getMessage(), BAD_REQUEST);
-            writeResponse(response,httpResponse);
-
+            writeResponse(response, httpResponse);
+        }else if(exception instanceof TokenExpiredException) {
+            HttpResponse httpResponse = getHttpResponse(response, exception.getMessage(), UNAUTHORIZED);
+            writeResponse(response, httpResponse);
         }else{
             HttpResponse httpResponse = getHttpResponse(response, "An Error Occurred. Please Try Again !", INTERNAL_SERVER_ERROR);
             writeResponse(response,httpResponse);
