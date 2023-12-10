@@ -252,6 +252,24 @@ public class UserRepositoryImpl implements UserRepository<User> , UserDetailsSer
         }
     }
 
+    @Override
+    public void updatePassword(Long id, String currentPassword, String newPassword, String comfirmNewPassword) {
+        if(!newPassword.equals(comfirmNewPassword))
+            { throw new ApiException("Password and Confirm Password does not match"); }
+        User user = get(id);
+        if(encoder.matches(currentPassword,user.getPassword()))
+        {
+            try{
+                jdbc.update(UPDATE_USER_PASSWORD_BY_ID_QUERY, of("password", encoder.encode(newPassword), "id", id));
+            }catch(Exception exception){
+                log.error(exception.getMessage());
+                throw new ApiException("An error Occurred . Please Try Again .");
+            }
+        } else{
+            throw new ApiException("Current Password is not Correct");
+        }
+    }
+
 
     private SqlParameterSource getSqlParameterSource(User user) {
         return new MapSqlParameterSource()

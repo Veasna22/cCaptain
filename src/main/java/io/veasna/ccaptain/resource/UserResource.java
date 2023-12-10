@@ -7,6 +7,7 @@ import io.veasna.ccaptain.dto.UserDTO;
 import io.veasna.ccaptain.exception.ApiException;
 import io.veasna.ccaptain.form.LoginForm;
 import io.veasna.ccaptain.form.UpdateForm;
+import io.veasna.ccaptain.form.UpdatePasswordForm;
 import io.veasna.ccaptain.provider.TokenProvider;
 import io.veasna.ccaptain.service.RoleService;
 import io.veasna.ccaptain.service.UserService;
@@ -150,6 +151,7 @@ public class UserResource {
                         .statusCode(OK.value())
                         .build());
     }
+
     @GetMapping("/verify/account/{key}")
     public ResponseEntity<HttpResponse> verifyAccount (@PathVariable("key") String key){
         return ResponseEntity.ok().body(
@@ -186,7 +188,18 @@ public class UserResource {
                             .build());
         }
     }
-
+    @PatchMapping("/update/password")
+    public ResponseEntity<HttpResponse> updatePassword (Authentication authentication, @RequestBody @Valid UpdatePasswordForm form){
+        UserDTO userDTO = getAuthenticatedUser(authentication);
+        userService.updatePassword(userDTO.getId(),form.getCurrentPassword(),form.getNewPassword(),form.getComfirmNewPassword());
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .message("Password Updated Successfully")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
     private boolean isHeaderAndTokenValid(HttpServletRequest request) {
         return request.getHeader(AUTHORIZATION) != null && request.getHeader(AUTHORIZATION).startsWith(TOKEN_PREFIX)
                 && tokenProvider.isTokenValid(tokenProvider.getSubject(request.getHeader(AUTHORIZATION).substring(TOKEN_PREFIX.length()), request)

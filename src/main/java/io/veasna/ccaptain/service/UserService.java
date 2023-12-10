@@ -28,4 +28,6 @@ public interface UserService
     void renewPassword(String key, String password, String comfirmpassword);
 
     UserDTO verifyAccountKey(String key);
+
+    void updatePassword(Long id, String currentPassword, String newPassword, String comfirmNewPassword);
 }
