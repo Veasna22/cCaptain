@@ -3,6 +3,7 @@ package io.veasna.ccaptain.repository;
 import io.veasna.ccaptain.domain.User;
 import io.veasna.ccaptain.dto.UserDTO;
 import io.veasna.ccaptain.form.UpdateForm;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
 
@@ -33,4 +34,6 @@ public interface UserRepository <T extends User>{
     void updateAccountSettings(Long userId, Boolean enabled, Boolean notLocked);
 
     User toggleMfa(String email);
+
+    void updateImage(UserDTO user, MultipartFile image);
 }

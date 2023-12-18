@@ -3,6 +3,7 @@ package io.veasna.ccaptain.service;
 import io.veasna.ccaptain.domain.User;
 import io.veasna.ccaptain.dto.UserDTO;
 import io.veasna.ccaptain.form.UpdateForm;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Veasna
@@ -36,4 +37,6 @@ public interface UserService
     void updateAccountSettings(Long id, Boolean enabled, Boolean notLocked);
 
     UserDTO toggleMfa(String email);
+
+    void updateImage(UserDTO user, MultipartFile image);
 }

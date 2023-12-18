@@ -37,7 +37,7 @@ public class SecurityConfig
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final UserDetailsService userDetailsService;
     private static final String[] PUBLIC_URL = {"/user/refresh/token/**","/user/verify/account/**","/user/login/**","/user/register/**","/user/verify/code/**","/user/resetpassword/**",
-            "/user/verify/password/**" };
+            "/user/verify/password/**" ,"/user/image/**"};
 //    private static final String[] PUBLIC_URL = {"/**"};
 
     private final CustomAuthorizationFilter customAuthorizationFilter;
