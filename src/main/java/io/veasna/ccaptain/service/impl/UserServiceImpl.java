@@ -90,6 +90,11 @@ public class UserServiceImpl implements UserService {
         roleRoleRepository.updateUserRole(userId,roleName);
     }
 
+    @Override
+    public void updateAccountSettings(Long id, Boolean enabled, Boolean notLocked) {
+        userRepository.updateAccountSettings(id,enabled,notLocked);
+    }
+
     private UserDTO maptoUserDTO(User user) {
         return fromUser(user,roleRoleRepository.getRoleByUserId(user.getId()));
     }

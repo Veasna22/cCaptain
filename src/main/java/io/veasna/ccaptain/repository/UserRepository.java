@@ -29,4 +29,6 @@ public interface UserRepository <T extends User>{
     T verifyAccountKey(String key);
 
     void updatePassword(Long id, String currentPassword, String newPassword, String comfirmNewPassword);
+
+    void updateAccountSettings(Long userId, Boolean enabled, Boolean notLocked);
 }

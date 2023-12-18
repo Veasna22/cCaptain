@@ -6,6 +6,7 @@ import io.veasna.ccaptain.domain.UserPrincipal;
 import io.veasna.ccaptain.dto.UserDTO;
 import io.veasna.ccaptain.exception.ApiException;
 import io.veasna.ccaptain.form.LoginForm;
+import io.veasna.ccaptain.form.SettingsForm;
 import io.veasna.ccaptain.form.UpdateForm;
 import io.veasna.ccaptain.form.UpdatePasswordForm;
 import io.veasna.ccaptain.provider.TokenProvider;
@@ -209,6 +210,19 @@ public class UserResource {
                         .timeStamp(now().toString())
                         .data(of("user",userService.getUserById(userDTO.getId()),"role",roleService.getRoles()))
                         .message("Role Updated Successfully")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
+    @PatchMapping("/update/settings")
+    public ResponseEntity<HttpResponse> updateAccountSetting (Authentication authentication,@RequestBody @Valid SettingsForm form){
+        UserDTO userDTO = getAuthenticatedUser(authentication);
+        userService.updateAccountSettings(userDTO.getId(),form.getEnabled(),form.getIsNotLocked());
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .data(of("user",userService.getUserById(userDTO.getId()),"role",roleService.getRoles()))
+                        .message("Account Setting Updated Successfully")
                         .status(OK)
                         .statusCode(OK.value())
                         .build());

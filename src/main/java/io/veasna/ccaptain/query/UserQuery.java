@@ -29,7 +29,7 @@ public class UserQuery
     public static final String SELECT_USER_BY_ACCOUNT_URL_QUERY = "SELECT * FROM Users WHERE id = (SELECT user_id FROM AccountVerifications WHERE url = :url)";
     public static final String UPDATE_USER_ENABLED_QUERY = "UPDATE Users SET enabled = 1 WHERE id = :id";
     public static final String UPDATE_USER_PASSWORD_BY_ID_QUERY = "UPDATE Users SET password = :password WHERE id = :id";
-
+    public static final String UPDATE_USER_ACCOUNT_SETTINGS_QUERY = "UPDATE Users SET enabled = :enabled, non_locked = :notLocked WHERE id = :userId";
 
 
 
