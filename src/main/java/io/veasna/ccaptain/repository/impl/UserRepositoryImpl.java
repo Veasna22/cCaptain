@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.UUID;
 
+import static io.micrometer.common.util.StringUtils.isBlank;
 import static io.veasna.ccaptain.enumeration.RoleType.ROLE_USER;
 import static io.veasna.ccaptain.enumeration.VerificationType.ACCOUNT;
 import static io.veasna.ccaptain.enumeration.VerificationType.PASSWORD;
@@ -278,6 +279,21 @@ public class UserRepositoryImpl implements UserRepository<User> , UserDetailsSer
             log.error(exception.getMessage());
             throw new ApiException("An error Occurred . Please Try Again .");
         }
+    }
+
+    @Override
+    public User toggleMfa(String email) {
+        User user = getUserByEmail(email);
+        if(isBlank(user.getPhone())){ throw new ApiException("Please Update Your Phone Number First"); }
+        user.setIsUsingMfa(!user.getIsUsingMfa());
+        try{
+            jdbc.update(TOGGLE_USER_MFA_QUERY, of("email", email, "isUsingMfa", user.getIsUsingMfa()));
+            return user;
+        }catch(Exception exception){
+            log.error(exception.getMessage());
+            throw new ApiException("Unable to Update MFA . Please Try Again .");
+        }
+
     }
 
 

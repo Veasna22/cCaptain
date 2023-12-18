@@ -30,7 +30,7 @@ public class UserQuery
     public static final String UPDATE_USER_ENABLED_QUERY = "UPDATE Users SET enabled = 1 WHERE id = :id";
     public static final String UPDATE_USER_PASSWORD_BY_ID_QUERY = "UPDATE Users SET password = :password WHERE id = :id";
     public static final String UPDATE_USER_ACCOUNT_SETTINGS_QUERY = "UPDATE Users SET enabled = :enabled, non_locked = :notLocked WHERE id = :userId";
-
+    public static final String TOGGLE_USER_MFA_QUERY = "UPDATE Users SET using_mfa = :isUsingMfa WHERE email = :email";
 
 
 

@@ -34,4 +34,6 @@ public interface UserService
     void updateUserRole(Long userId, String roleName);
 
     void updateAccountSettings(Long id, Boolean enabled, Boolean notLocked);
+
+    UserDTO toggleMfa(String email);
 }
