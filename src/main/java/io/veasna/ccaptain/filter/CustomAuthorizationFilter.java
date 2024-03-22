@@ -1,5 +1,4 @@
 package io.veasna.ccaptain.filter;
-
 import io.veasna.ccaptain.provider.TokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,7 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
+
 
 import static io.veasna.ccaptain.utils.ExceptionUtils.processError;
 import static java.util.Arrays.asList;
