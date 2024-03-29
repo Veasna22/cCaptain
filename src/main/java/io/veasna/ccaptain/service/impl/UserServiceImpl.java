@@ -85,6 +85,10 @@ public class UserServiceImpl implements UserService {
     public void updatePassword(Long id, String currentPassword, String newPassword, String comfirmNewPassword) {
         userRepository.updatePassword(id,currentPassword,newPassword,comfirmNewPassword);
     }
+    @Override
+    public void updatePassword(Long userId, String password, String confirmPassword) {
+        userRepository.renewPassword(userId, password, confirmPassword);
+    }
 
     @Override
     public void updateUserRole(Long userId, String roleName) {

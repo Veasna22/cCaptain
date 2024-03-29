@@ -6,10 +6,7 @@ import io.veasna.ccaptain.domain.UserPrincipal;
 import io.veasna.ccaptain.dto.UserDTO;
 import io.veasna.ccaptain.event.NewUserEvent;
 import io.veasna.ccaptain.exception.ApiException;
-import io.veasna.ccaptain.form.LoginForm;
-import io.veasna.ccaptain.form.SettingsForm;
-import io.veasna.ccaptain.form.UpdateForm;
-import io.veasna.ccaptain.form.UpdatePasswordForm;
+import io.veasna.ccaptain.form.*;
 import io.veasna.ccaptain.provider.TokenProvider;
 import io.veasna.ccaptain.service.EventService;
 import io.veasna.ccaptain.service.RoleService;
@@ -136,18 +133,33 @@ public class UserResource {
                         .statusCode(OK.value())
                         .build());
     }
+
     @GetMapping("/verify/password/{key}")
-    public ResponseEntity<HttpResponse> verifyPasswordUrl (@PathVariable("key") String key){
+    public ResponseEntity<HttpResponse> verifyPasswordUrl(@PathVariable("key") String key) throws InterruptedException {
+        TimeUnit.SECONDS.sleep(3);
         UserDTO user = userService.verifyPasswordKey(key);
         return ResponseEntity.ok().body(
                 HttpResponse.builder()
                         .timeStamp(now().toString())
-                        .data(of("user",user))
-                        .message("Please Enter a new Password")
+                        .data(of("user", user))
+                        .message("Please enter a new password")
                         .status(OK)
                         .statusCode(OK.value())
                         .build());
     }
+    @PutMapping("/new/password")
+    public ResponseEntity<HttpResponse> resetPasswordWithKey(@RequestBody @Valid NewPasswordForm form) throws InterruptedException {
+        TimeUnit.SECONDS.sleep(3);
+        userService.updatePassword(form.getUserId(), form.getPassword(), form.getConfirmPassword());
+        return ResponseEntity.ok().body(
+                HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .message("Password reset successfully")
+                        .status(OK)
+                        .statusCode(OK.value())
+                        .build());
+    }
+
     @PostMapping("/resetpassword/{key}/{password}/{confirmPassword}")
     public ResponseEntity<HttpResponse> resetPasswordWithKey (@PathVariable("key") String key,
                                                            @PathVariable("password") String password,
@@ -163,11 +175,12 @@ public class UserResource {
     }
 
     @GetMapping("/verify/account/{key}")
-    public ResponseEntity<HttpResponse> verifyAccount (@PathVariable("key") String key){
+    public ResponseEntity<HttpResponse> verifyAccount(@PathVariable("key") String key) throws InterruptedException {
+        TimeUnit.SECONDS.sleep(3);
         return ResponseEntity.ok().body(
                 HttpResponse.builder()
                         .timeStamp(now().toString())
-                        .message(userService.verifyAccountKey(key).getEnabled()? "Account Already Verified" : "Account Verified")
+                        .message(userService.verifyAccountKey(key).getEnabled() ? "Account already verified" : "Account verified")
                         .status(OK)
                         .statusCode(OK.value())
                         .build());

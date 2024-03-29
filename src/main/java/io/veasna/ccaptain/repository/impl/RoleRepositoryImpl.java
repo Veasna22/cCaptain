@@ -11,11 +11,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
-import java.util.Map;
 
 import static io.veasna.ccaptain.enumeration.RoleType.ROLE_USER;
 import static io.veasna.ccaptain.query.RoleQuery.*;
-import static java.util.Map.*;
+import static java.util.Map.of;
 import static java.util.Objects.requireNonNull;
 
 /**

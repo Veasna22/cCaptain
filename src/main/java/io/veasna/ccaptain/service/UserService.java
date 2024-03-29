@@ -30,8 +30,8 @@ public interface UserService
 
     UserDTO verifyAccountKey(String key);
 
-    void updatePassword(Long userId, String currentPassword, String newPassword, String comfirmNewPassword);
-
+    void updatePassword(Long userId, String password, String confirmPassword);
+    void updatePassword(Long userId, String currentPassword, String newPassword, String confirmNewPassword);
     void updateUserRole(Long userId, String roleName);
 
     void updateAccountSettings(Long id, Boolean enabled, Boolean notLocked);

@@ -2,6 +2,7 @@ package io.veasna.ccaptain.service;
 
 import io.veasna.ccaptain.domain.Customer;
 import io.veasna.ccaptain.domain.Invoice;
+import io.veasna.ccaptain.domain.Stats;
 import org.springframework.data.domain.Page;
 
 /**
@@ -24,4 +25,5 @@ public interface CustomerService {
     void addInvoiceToCustomer(Long id, Invoice invoice);
 
 
+    Stats getStats();
 }
